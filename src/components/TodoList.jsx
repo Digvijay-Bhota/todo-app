@@ -15,7 +15,7 @@ export default function TodoList() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
-  const [priority, setPriority] = useState("medium");
+  const [priority, setPriority] = useState("");
   const [due, setDue] = useState("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
