@@ -205,34 +205,25 @@ button {
 .priority.medium { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 .priority.high { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 
-
-/* Keeps the text wrapper fluid so long task sentences wrap beautifully onto a new line instead of overflowing */
+/* Fluid text alignment layout */
 .item .row span {
   word-break: break-word;
   max-width: 240px;
 }
 
-/* Prevents the structural layout rows from collapsing on smaller touch screen layouts */
+/* Mobile Media Query Layout adjustment */
 @media (max-width: 480px) {
   .item {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
+  
   .item .row:last-child {
     width: 100%;
-    justify-content: flex-end;
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
