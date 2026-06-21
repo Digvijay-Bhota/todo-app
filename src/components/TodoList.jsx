@@ -15,19 +15,19 @@ export default function TodoList() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
-  const [priority, setPriority] = useState("medium"); // ✅ new
-  const [due, setDue] = useState(""); // ✅ new
+  const [priority, setPriority] = useState("medium");
+  const [due, setDue] = useState("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [dark, setDark] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Dark mode toggle
+  // Smooth theme toggle using the .dark class on HTML root element
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
 
-  // Load tasks
+  // Load tasks from Supabase
   useEffect(() => {
     const fetch = async () => {
       if (!user) return;
@@ -59,7 +59,7 @@ export default function TodoList() {
     }
   };
 
-  // Toggle complete
+  // Toggle complete state
   const toggleTask = async (id, current) => {
     try {
       const updated = await toggleComplete(id, !current);
@@ -69,7 +69,7 @@ export default function TodoList() {
     }
   };
 
-  // Delete one task
+  // Delete individual task
   const removeTask = async (id) => {
     try {
       await deleteTask(id);
@@ -79,7 +79,7 @@ export default function TodoList() {
     }
   };
 
-  // Clear completed
+  // Clear all completed tasks
   const clearAllCompleted = async () => {
     try {
       await clearCompleted(user.id);
@@ -89,7 +89,7 @@ export default function TodoList() {
     }
   };
 
-  // Filter + search
+  // Live filter + text search
   const filtered = useMemo(() => {
     const byQuery = (t) => t.text.toLowerCase().includes(query.toLowerCase());
     if (filter === "active") return tasks.filter((t) => !t.completed).filter(byQuery);
@@ -97,8 +97,8 @@ export default function TodoList() {
     return tasks.filter(byQuery);
   }, [tasks, filter, query]);
 
-  if (loading) return <p>Loading...</p>;
-  if (!user) return <p>Please log in to see your tasks.</p>;
+  if (loading) return <div className="app"><p style={{ textAlign: "center", color: "var(--muted)" }}>Loading your list...</p></div>;
+  if (!user) return <div className="app"><p style={{ textAlign: "center", color: "var(--muted)" }}>Please log in to see your tasks.</p></div>;
 
   const chip = (key, label) => (
     <button
@@ -111,23 +111,29 @@ export default function TodoList() {
 
   return (
     <div className="app">
+      {/* Top Controls Bar */}
       <div className="topbar">
         <h1>Todos</h1>
-        <input
-          className="search"
-          placeholder="Search tasks"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
         <div className="grow" />
         <button className="chip" onClick={() => setDark((d) => !d)}>
-          {dark ? "☀ Light" : "🌙 Dark"}
+          {dark ? "☀️ Light Mode" : "🌙 Dark Mode"}
         </button>
         <button className="chip" onClick={() => supabase.auth.signOut()}>
-          Sign out
+          Sign Out
         </button>
       </div>
 
+      {/* Dynamic Search Box */}
+      <div style={{ marginBottom: "16px" }}>
+        <input
+          className="search"
+          placeholder="Search your tasks..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
+      {/* Task Creation Form Card */}
       <motion.div
         className="addbox"
         initial={{ opacity: 0, y: 8 }}
@@ -136,34 +142,39 @@ export default function TodoList() {
         <input
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
-          placeholder="Add a new task..."
+          placeholder="What needs to be done?"
           onKeyDown={(e) => e.key === "Enter" && addTask()}
         />
-        <select value={priority} onChange={(e) => setPriority(e.target.value)}>
-          <option value="low">⬇ Low</option>
-          <option value="medium">⬅ Medium</option>
-          <option value="high">⬆ High</option>
-        </select>
-        <input
-          type="date"
-          value={due}
-          onChange={(e) => setDue(e.target.value)}
-        />
-        <button onClick={addTask}>Add</button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <select style={{ flex: 1 }} value={priority} onChange={(e) => setPriority(e.target.value)}>
+            <option value="low">Low Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="high">High Priority</option>
+          </select>
+          <input
+            style={{ flex: 1 }}
+            type="date"
+            value={due}
+            onChange={(e) => setDue(e.target.value)}
+          />
+        </div>
+        <button onClick={addTask}>Add Task</button>
       </motion.div>
 
+      {/* Filter Chips Bar */}
       <div className="filters">
         {chip("all", "All")}
         {chip("active", "Active")}
         {chip("done", "Done")}
         <div className="grow" />
         <button className="danger" onClick={clearAllCompleted}>
-          Clear completed
+          Clear Completed
         </button>
       </div>
 
+      {/* Task List Grid */}
       <ul className="list">
-        <AnimatePresence>
+        <AnimatePresence mode="popLayout">
           {filtered.length === 0 && (
             <motion.li
               key="empty"
@@ -172,7 +183,7 @@ export default function TodoList() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {query ? "No matching tasks." : "No tasks yet. Add one above!"}
+              {query ? "No matching tasks found." : "Your task list is empty!"}
             </motion.li>
           )}
 
@@ -183,11 +194,12 @@ export default function TodoList() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
-              transition={{ delay: i * 0.03 }}
+              transition={{ delay: i * 0.02 }}
             >
               <div className="row">
                 <input
                   type="checkbox"
+                  style={{ cursor: "pointer", width: "16px", height: "16px" }}
                   checked={!!t.completed}
                   onChange={() => toggleTask(t.id, t.completed)}
                 />
@@ -195,11 +207,21 @@ export default function TodoList() {
                   {t.text}
                 </span>
               </div>
-              <div className="row" style={{ gap: "8px", fontSize: "0.85em" }}>
-                <span className={`priority ${t.priority}`}>📌 {t.priority}</span>
-                {t.due && <span>⏰ {new Date(t.due).toLocaleDateString()}</span>}
+              <div className="row" style={{ gap: "10px" }}>
+                <span className={`priority ${t.priority}`}>{t.priority}</span>
+                {t.due && (
+                  <span style={{ color: "var(--muted)", fontSize: "12px" }}>
+                    📅 {new Date(t.due).toLocaleDateString()}
+                  </span>
+                )}
+                <button 
+                  className="danger" 
+                  onClick={() => removeTask(t.id)} 
+                  style={{ padding: "4px 8px", background: "transparent", color: "var(--muted)" }}
+                >
+                  ✖
+                </button>
               </div>
-              <button className="danger" onClick={() => removeTask(t.id)}>✖</button>
             </motion.li>
           ))}
         </AnimatePresence>
