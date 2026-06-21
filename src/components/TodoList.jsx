@@ -147,10 +147,11 @@ export default function TodoList() {
         />
         <div style={{ display: "flex", gap: "10px" }}>
           <select style={{ flex: 1 }} value={priority} onChange={(e) => setPriority(e.target.value)}>
-            <option value="low">Low Priority</option>
-            <option value="medium">Medium Priority</option>
-            <option value="high">High Priority</option>
-          </select>
+  <option value="" disabled hidden>Priority</option>
+  <option value="low">Low Priority</option>
+  <option value="medium">Medium Priority</option>
+  <option value="high">High Priority</option>
+</select>
           <input
             style={{ flex: 1 }}
             type="date"
